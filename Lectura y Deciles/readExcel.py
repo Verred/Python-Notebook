@@ -189,3 +189,52 @@ print("Resumen DF1:")
 print(resumen_df1)
 print("\nResumen DF2:")
 print(resumen_df2)
+
+###########
+import pandas as pd
+
+def generar_resumen_y_guardar(df, file_name, path=''):  # path es opcional, por defecto se guarda en la carpeta actual
+    # Asegurarse de que los valores de la columna "Decil" sean consistentes
+    df['Decil'] = df['Decil'].str.upper()
+
+    # Crear un DataFrame resumen que contenga las estadísticas generales por decil
+    summary_df = df.groupby('Decil').agg(
+        Monto_Min=('monto', 'min'),
+        Monto_Max=('monto', 'max'),
+        Monto_Sum=('monto', 'sum'),
+        Total_Trx=('Decil', 'size'),
+        Aprobadas_SI=('aprobada', lambda x: (x == 'SI').sum()),
+        Monto_Aprobado=('monto', lambda x: df.loc[x.index, 'monto'][df['aprobada'] == 'SI'].sum())  # Suma de montos aprobados
+    ).reset_index()
+
+    # Calcular transacciones no aprobadas
+    summary_df['No_Aprobadas'] = summary_df['Total_Trx'] - summary_df['Aprobadas_SI']
+
+    # Calcular la relación del Monto Aprobado sobre el Monto Mínimo
+    summary_df['Relacion_Aprobado_Min'] = summary_df['Monto_Aprobado'] / summary_df['Monto_Min']
+
+    # Revisar y manejar cualquier división por cero o resultados infinitos
+    summary_df['Relacion_Aprobado_Min'] = summary_df['Relacion_Aprobado_Min'].replace([float('inf'), -float('inf')], 0)
+
+    # Completar la ruta del archivo si se proporciona un path
+    full_path = f"{path}{file_name}.xlsx" if path else f"{file_name}.xlsx"
+
+    # Guardar el DataFrame en un archivo Excel
+    summary_df.to_excel(full_path, index=False)
+
+    return summary_df
+
+# Datos de ejemplo
+data = {
+    'Decil': ['D1', 'D2', 'D3', 'D1', 'D2', 'D3', 'D1', 'D2', 'D3', 'D4'],
+    'monto': [100, 150, 200, 110, 160, 210, 120, 170, 220, 230],
+    'aprobada': ['SI', 'NO', 'SI', 'SI', 'ESPERA', 'SI', 'NO', 'SI', 'NO', 'SI'],
+    'Five': ['F', 'F', 'X', 'X', 'X', 'F', 'X', 'X', 'F', 'X']
+}
+df = pd.DataFrame(data)
+
+# Aplicar la función especificando una ruta
+ruta_deseada = '/ruta/a/tu/carpeta/deseada/'  # Asegúrate de cambiar esto por la ruta real que desees usar
+resumen = generar_resumen_y_guardar(df, 'Resumen_DF', ruta_deseada)
+
+print("Resumen generado y guardado en:", ruta_deseada)
