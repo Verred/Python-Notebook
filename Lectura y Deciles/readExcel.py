@@ -132,3 +132,60 @@ for i in range(1, 11):
 
 # Muestra el DataFrame actualizado
 print(final_df)
+
+#####################
+import pandas as pd
+
+def generar_resumen_y_guardar(df, file_name):
+    # Asegurarse de que los valores de la columna "Decil" sean consistentes
+    df['Decil'] = df['Decil'].str.upper()
+
+    # Crear un DataFrame resumen que contenga las estadísticas generales por decil
+    summary_df = df.groupby('Decil').agg(
+        Monto_Min=('monto', 'min'),
+        Monto_Max=('monto', 'max'),
+        Monto_Sum=('monto', 'sum'),
+        Total_Trx=('Decil', 'size'),
+        Aprobadas_SI=('aprobada', lambda x: (x == 'SI').sum()),
+        Monto_Aprobado=('monto', lambda x: df.loc[x.index, 'monto'][df['aprobada'] == 'SI'].sum())  # Suma de montos aprobados
+    ).reset_index()
+
+    # Calcular transacciones no aprobadas
+    summary_df['No_Aprobadas'] = summary_df['Total_Trx'] - summary_df['Aprobadas_SI']
+
+    # Calcular la relación del Monto Aprobado sobre el Monto Mínimo
+    summary_df['Relacion_Aprobado_Min'] = summary_df['Monto_Aprobado'] / summary_df['Monto_Min']
+
+    # Revisar y manejar cualquier división por cero o resultados infinitos
+    summary_df['Relacion_Aprobado_Min'] = summary_df['Relacion_Aprobado_Min'].replace([float('inf'), -float('inf')], 0)
+
+    # Guardar el DataFrame en un archivo Excel
+    summary_df.to_excel(f'{file_name}.xlsx', index=False)
+
+    return summary_df
+
+# Datos de ejemplo para dos DataFrames
+data1 = {
+    'Decil': ['D1', 'D2', 'D3', 'D1', 'D2', 'D3', 'D1', 'D2', 'D3', 'D4'],
+    'monto': [100, 150, 200, 110, 160, 210, 120, 170, 220, 230],
+    'aprobada': ['SI', 'NO', 'SI', 'SI', 'ESPERA', 'SI', 'NO', 'SI', 'NO', 'SI'],
+    'Five': ['F', 'F', 'X', 'X', 'X', 'F', 'X', 'X', 'F', 'X']
+}
+data2 = {
+    'Decil': ['D1', 'D2', 'D3', 'D1', 'D2', 'D3', 'D1', 'D2', 'D3', 'D4'],
+    'monto': [105, 145, 205, 115, 165, 215, 125, 175, 225, 235],
+    'aprobada': ['NO', 'SI', 'NO', 'NO', 'SI', 'NO', 'SI', 'NO', 'SI', 'NO'],
+    'Five': ['F', 'X', 'F', 'X', 'F', 'X', 'X', 'F', 'X', 'F']
+}
+
+df1 = pd.DataFrame(data1)
+df2 = pd.DataFrame(data2)
+
+# Aplicar la función a cada DataFrame
+resumen_df1 = generar_resumen_y_guardar(df1, 'Resumen_DF1')
+resumen_df2 = generar_resumen_y_guardar(df2, 'Resumen_DF2')
+
+print("Resumen DF1:")
+print(resumen_df1)
+print("\nResumen DF2:")
+print(resumen_df2)
