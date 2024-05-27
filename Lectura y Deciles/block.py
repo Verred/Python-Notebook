@@ -122,3 +122,18 @@ summary_df['Cantidad_Denegado_F'] = summary_df['Cantidad_Denegado_F'].fillna(0)
 
 # Mostrar el DataFrame final
 print(summary_df)
+
+
+#########
+
+# Calcular transacciones no aprobadas
+summary_df['No_Aprobadas'] = summary_df['Total_Trx'] - summary_df['Aprobadas_SI']
+
+# Calcular la relación del Monto Aprobado sobre el Monto Mínimo
+summary_df['Relacion_Aprobado_Min'] = summary_df['Monto_Aprobado'] / summary_df['Monto_Min']
+
+# Revisar y manejar cualquier división por cero o resultados infinitos
+summary_df['Relacion_Aprobado_Min'] = summary_df['Relacion_Aprobado_Min'].replace([float('inf'), -float('inf')], 0)
+
+# Mostrar el DataFrame final
+print(summary_df)
