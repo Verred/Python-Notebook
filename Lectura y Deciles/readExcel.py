@@ -98,3 +98,37 @@ final_df = divide_deciles(final_df, 'Monto', 10)
 
 # Muestra el resultado
 final_df
+
+
+##################
+import pandas as pd
+import numpy as np
+import math
+
+def divide_deciles_por_filas(df, column, num_divisions, label_prefix='D'):
+    df_sorted = df.sort_values(column, ascending=True)
+    num_rows = len(df_sorted)
+    rows_per_decil = math.ceil(num_rows / num_divisions)
+    labels = np.repeat([f'{label_prefix}{i+1:02d}' for i in range(num_divisions)], rows_per_decil)
+    labels = labels[:num_rows]  # Ajustar el tamaño del array de labels
+    df_sorted[f'{label_prefix}_Decil'] = labels
+    return df_sorted
+
+# Divide el DataFrame completo en deciles
+final_df = divide_deciles_por_filas(final_df, 'Monto', 10)
+
+# Encuentra las filas que pertenecen al décimo decil
+decil_diez = final_df[final_df['D_Decil'] == 'D10']
+
+# Divide este décimo decil en 10 sub-deciles adicionales
+decil_diez_dividido = divide_deciles_por_filas(decil_diez, 'Monto', 10, 'D10')
+
+# Actualiza las etiquetas en el DataFrame original para el décimo decil
+for i in range(1, 11):
+    # Identifica las filas que pertenecen a cada sub-decil dentro del décimo decil
+    sub_decil_rows = decil_diez_dividido[decil_diez_dividido['D10_Decil'] == f'D10{i:02d}']
+    # Actualiza la columna 'D_Decil' en el DataFrame original con las nuevas etiquetas
+    final_df.loc[sub_decil_rows.index, 'D_Decil'] = f'D10-D{i}'
+
+# Muestra el DataFrame actualizado
+print(final_df)
