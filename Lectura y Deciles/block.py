@@ -67,14 +67,14 @@ summary_df = df.groupby('Decil').agg(
     Monto_Aprobado=('monto', lambda x: df.loc[x.index, 'monto'][df['aprobada'] == 'SI'].sum())  # Suma de montos aprobados
 ).reset_index()
 
-# Calcular el monto total de todas las transacciones aprobadas
-total_monto_aprobado = summary_df['Monto_Aprobado'].sum()
+# Calcular el total de transacciones aprobadas
+total_trx_aprobadas = summary_df['Aprobadas_SI'].sum()
 
-# Calcular la frecuencia del monto aprobado por decil respecto al total
-summary_df['Frecuencia_Monto_Aprobado'] = ((summary_df['Monto_Aprobado'] / total_monto_aprobado) * 100).round(2)
+# Calcular la frecuencia de transacciones aprobadas por decil respecto al total de transacciones aprobadas
+summary_df['Frecuencia_Trx_Aprobadas'] = ((summary_df['Aprobadas_SI'] / total_trx_aprobadas) * 100).round(2)
 
-# Calcular la frecuencia acumulada del monto aprobado
-summary_df['Frecuencia_Acumulada_Monto'] = summary_df['Frecuencia_Monto_Aprobado'].cumsum()
+# Calcular la frecuencia acumulada de transacciones aprobadas
+summary_df['Frecuencia_Acumulada_Trx'] = summary_df['Frecuencia_Trx_Aprobadas'].cumsum()
 
 # Mostrar el DataFrame final
 print(summary_df)
