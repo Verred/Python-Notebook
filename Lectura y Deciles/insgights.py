@@ -124,3 +124,49 @@ resultados = df_top.groupby(['comercio', 'monto_intervalo'])['score'].agg(['mean
 
 # Mostrar resultados
 print(resultados)
+
+
+########-------------------
+
+import pandas as pd
+import numpy as np
+
+# Suponiendo que df es tu DataFrame original con las columnas 'idcliente', 'fecha' y 'monto'
+df['fecha'] = pd.to_datetime(df['fecha'])
+
+# Agrupa por 'idcliente' y 'fecha', y cuenta las transacciones por grupo
+frecuencia_trx = df.groupby(['idcliente', 'fecha']).size().reset_index(name='num_trx')
+
+# Calcula los valores máximo y mínimo de transacciones
+max_trx = frecuencia_trx['num_trx'].max()
+min_trx = frecuencia_trx['num_trx'].min()
+
+# Define el número de intervalos que deseas, por ejemplo, 5
+num_intervals = 5
+
+# Crea los intervalos desde el mínimo al máximo
+if max_trx == min_trx:  # Evita la creación de intervalos inválidos si todos los valores son iguales
+    bins = [min_trx - 1, max_trx + 1]
+else:
+    bins = np.linspace(min_trx, max_trx, num_intervals + 1)
+
+# Ajusta los bins para asegurar que el último bin incluya el máximo valor
+bins[-1] = bins[-1] + 1
+
+# Etiquetas para los intervalos
+labels = [f'[{int(bins[i])}-{int(bins[i+1])-1}]' for i in range(len(bins)-1)]
+
+# Clasifica las transacciones en los intervalos definidos
+frecuencia_trx['intervalo'] = pd.cut(frecuencia_trx['num_trx'], bins=bins, labels=labels, right=True)
+
+# Cuenta cuántas transacciones caen en cada intervalo
+intervalo_frecuencia = frecuencia_trx['intervalo'].value_counts().reset_index(name='cantidad')
+intervalo_frecuencia.columns = ['intervalo', 'cantidad']
+
+# Calcula el porcentaje de cada intervalo respecto al total de transacciones
+intervalo_frecuencia['porcentaje'] = (intervalo_frecuencia['cantidad'] / intervalo_frecuencia['cantidad'].sum()) * 100
+
+# Ordena los resultados por el intervalo
+intervalo_frecuencia = intervalo_frecuencia.sort_values('index')
+
+print(intervalo_frecuencia)
