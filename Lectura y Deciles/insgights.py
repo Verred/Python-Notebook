@@ -150,14 +150,15 @@ if max_trx == min_trx:  # Evita la creación de intervalos inválidos si todos l
 else:
     bins = np.linspace(min_trx, max_trx, num_intervals + 1)
 
-# Ajusta los bins para asegurar que el último bin incluya el máximo valor
-bins[-1] = bins[-1] + 1
+# Ajusta los bins para que sean exactamente como los necesitas
+bins = np.floor(bins).astype(int)  # Asegúrate de que los bins sean enteros
+bins[-1] += 1  # Ajusta el último bin para incluir el valor máximo
 
-# Etiquetas para los intervalos
-labels = [f'[{int(bins[i])}-{int(bins[i+1])-1}]' for i in range(len(bins)-1)]
+# Etiquetas para los intervalos, asegurando que los rangos sean correctos
+labels = [f'{bins[i]}-{bins[i+1]-1}' for i in range(len(bins)-1)]
 
 # Clasifica las transacciones en los intervalos definidos
-frecuencia_trx['intervalo'] = pd.cut(frecuencia_trx['num_trx'], bins=bins, labels=labels, right=True)
+frecuencia_trx['intervalo'] = pd.cut(frecuencia_trx['num_trx'], bins=bins, labels=labels, right=False)
 
 # Cuenta cuántas transacciones caen en cada intervalo
 intervalo_frecuencia = frecuencia_trx['intervalo'].value_counts().reset_index(name='cantidad')
@@ -167,6 +168,6 @@ intervalo_frecuencia.columns = ['intervalo', 'cantidad']
 intervalo_frecuencia['porcentaje'] = (intervalo_frecuencia['cantidad'] / intervalo_frecuencia['cantidad'].sum()) * 100
 
 # Ordena los resultados por el intervalo
-intervalo_frecuencia = intervalo_frecuencia.sort_values('index')
+intervalo_frecuencia = intervalo_frecuencia.sort_values('intervalo')
 
 print(intervalo_frecuencia)
