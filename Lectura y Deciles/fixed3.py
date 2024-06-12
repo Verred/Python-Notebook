@@ -159,3 +159,37 @@ resultado_final['TRX'] = resultado_final['Genuina'] + resultado_final['Fraude']
 resultado_final = resultado_final[['Intervalo', 'TRX', 'Genuina', 'Fraude']]
 
 print(resultado_final)
+
+#################
+
+import pandas as pd
+
+# Supongamos que 'data' es tu conjunto de datos original, y 'df' se ha creado correctamente.
+df = pd.DataFrame(data)
+df['fecha'] = pd.to_datetime(df['fecha'])
+
+# Clasificación de transacciones como Genuinas o indicador de Fraude 'F'
+df['Clasificacion'] = df['indicadorFraude'].apply(lambda x: 'Fraude' if x == 'F' else 'Genuina')
+
+# Contar transacciones por cliente, por fecha y clasificación
+conteo_transacciones = df.groupby(['idcliente', 'fecha', 'Clasificacion']).size().reset_index(name='num_trx')
+
+# Clasificar el número de transacciones en los intervalos especificados
+bins = [0, 1, 2, 3, 4, 5, 6, 9, 20, float('inf')]
+labels = ['1', '2', '3', '4', '5', '6', '7-9', '10-20', '20+']
+conteo_transacciones['intervalo'] = pd.cut(conteo_transacciones['num_trx'], bins=bins, labels=labels, right=False)
+
+# Agrupar y contar las transacciones por intervalo y clasificación
+resultado_final = conteo_transacciones.groupby(['intervalo', 'Clasificacion']).size().unstack(fill_value=0)
+
+# Asegurarse de que ambas columnas 'Genuina' y 'Fraude' estén presentes
+resultado_final = resultado_final.reindex(columns=['Genuina', 'Fraude'], fill_value=0)
+
+# Calcular el total de transacciones por intervalo
+resultado_final['TRX'] = resultado_final['Genuina'] + resultado_final['Fraude']
+
+# Restablecer el índice para tener 'Intervalo' como columna
+resultado_final = resultado_final.reset_index()
+resultado_final = resultado_final[['Intervalo', 'TRX', 'Genuina', 'Fraude']]
+
+print(resultado_final)
