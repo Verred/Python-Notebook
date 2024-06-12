@@ -64,3 +64,39 @@ resultado_intervalos = pivot_frecuencia.groupby('intervalo').agg({
 }).reset_index()
 
 print(resultado_intervalos)
+##&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+import pandas as pd
+
+# Suponiendo que df es tu DataFrame con las columnas 'idcliente', 'fecha', 'monto', y 'cupon'
+df['fecha'] = pd.to_datetime(df['fecha'])
+
+# Función para clasificar las transacciones basada en la columna 'cupon'
+def clasificar_cupon(valor):
+    if 'F' in valor:
+        return 'Genuina'
+    else:
+        return 'No Genuina'
+
+# Aplicar la función para crear una nueva columna 'tipo_cupon'
+df['tipo_cupon'] = df['cupon'].apply(clasificar_cupon)
+
+# Agrupar por 'idcliente', 'fecha', y contar las transacciones totales y por tipo de cupón
+agrupado = df.groupby(['idcliente', 'fecha', 'tipo_cupon']).size().unstack(fill_value=0).reset_index()
+agrupado['total_trx'] = agrupado.sum(axis=1)
+
+# Definir los intervalos fijos y las etiquetas
+bins = [0, 1, 2, 3, 4, 5, 6, 9, 20, float('inf')]
+labels = ['1', '2', '3', '4', '5', '6', '7-9', '10-20', '20+']
+
+# Clasificar las transacciones totales en los intervalos definidos
+agrupado['intervalo'] = pd.cut(agrupado['total_trx'], bins=bins, labels=labels, right=False)
+
+# Reagrupar para obtener la suma por intervalo y tipo de cupón
+resultado_final = agrupado.groupby('intervalo').agg({
+    'Genuina': 'sum',
+    'No Genuina': 'sum',
+    'total_trx': 'sum'
+}).reset_index()
+
+print(resultado_final)
