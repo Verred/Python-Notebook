@@ -100,3 +100,32 @@ resultado_final = agrupado.groupby('intervalo').agg({
 }).reset_index()
 
 print(resultado_final)
+
+##$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+
+import pandas as pd
+
+# Suponiendo que df es tu DataFrame con las columnas 'idcliente', 'fecha', 'indicadorFraude' y otras más.
+df['fecha'] = pd.to_datetime(df['fecha'])
+
+# Clasificación de transacciones como Genuinas o indicador de Fraude 'F'
+df['Clasificacion'] = df['indicadorFraude'].apply(lambda x: 'Genuina' if x != 'F' else 'Fraude')
+
+# Contar transacciones por cliente y por fecha
+conteo_transacciones = df.groupby(['idcliente', 'fecha']).size().reset_index(name='num_trx')
+
+# Clasificar el número de transacciones en los intervalos especificados
+bins = [0, 1, 2, 3, 4, 5, 6, 9, 20, float('inf')]
+labels = ['1', '2', '3', '4', '5', '6', '7-9', '10-20', '20+']
+conteo_transacciones['intervalo'] = pd.cut(conteo_transacciones['num_trx'], bins=bins, labels=labels, right=False)
+
+# Unir los datos clasificados con los datos originales para obtener la clasificación de cada transacción
+transacciones_con_intervalo = pd.merge(conteo_transacciones, df, on=['idcliente', 'fecha'])
+
+# Contar transacciones por intervalo, clasificación y día
+resultado_final = transacciones_con_intervalo.groupby(['fecha', 'intervalo', 'Clasificacion']).size().unstack(fill_value=0).reset_index()
+
+# Cambiar nombres de columnas para claridad
+resultado_final.columns = ['Fecha', 'Intervalo', 'Genuinas', 'Fraude']
+
+print(resultado_final)
