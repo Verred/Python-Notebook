@@ -123,3 +123,40 @@ for index, row in df1.iterrows():
     # Si no se encuentra ninguna fila adecuada en df2, se conserva el código original (no se hace cambio)
 
 print(df1)
+
+############
+import pandas as pd
+
+# Crear los DataFrames con tus datos
+data_reclamos = {
+    'ID': [2, 2, 2, 3, 3, 4, 4],
+    'COD VALIDACION': [23, 24, 54, 35, 45, 63, 60],
+    'MONTO': [12, 12, 13, 54, 43, 78, 32],
+    'COMERCIO': ['Luna', 'Lunaas', 'Luna', 'app', 'app', 'cas', 'cas'],
+    'FECHA': ['12/03/2024', '12/03/2024', '15/03/2024', '16/03/2024', '16/03/2024', '16/03/2024', '16/03/2024']
+}
+
+data_moonitor = {
+    'ID': [2, 2, 2, 3, 3, 4, 4],
+    'COD VALIDACION': [53, 56, 54, 35, 45, 63, 60],
+    'MONTO': [12, 12, 13, 54, 43, 78, 32],
+    'COMERCIO': ['Luna', 'Lunaas', 'Luna', 'app', 'app', 'cas', 'cas'],
+    'FECHA': ['12/03/2024', '12/03/2024', '15/03/2024', '16/03/2024', '16/03/2024', '16/03/2024', '16/03/2024']
+}
+
+dfReclamos = pd.DataFrame(data_reclamos)
+dfMoonitor = pd.DataFrame(data_moonitor)
+
+# Corrección de códigos de validación
+for index, row in dfReclamos.iterrows():
+    # Intentar encontrar una fila en dfMoonitor con el mismo monto y la misma fecha
+    similar_rows = dfMoonitor[(dfMoonitor['MONTO'] == row['MONTO']) & (dfMoonitor['FECHA'] == row['FECHA'])]
+    for _, correct_row in similar_rows.iterrows():
+        # Verificar unicidad del nuevo par ID y código de validación
+        if not ((dfReclamos['ID'] == row['ID']) & (dfReclamos['COD VALIDACION'] == correct_row['COD VALIDACION'])).any():
+            # Actualizar el código de validación si es diferente
+            if dfReclamos.at[index, 'COD VALIDACION'] != correct_row['COD VALIDACION']:
+                dfReclamos.at[index, 'COD VALIDACION'] = correct_row['COD VALIDACION']
+            break  # Romper el bucle una vez hecho el cambio
+
+print(dfReclamos)
