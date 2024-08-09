@@ -24,11 +24,7 @@ def ReadFolderwithExcel(path):
             dataframes.append(df)
 
 
-
-
-
 ## Si quieree leer una tabla de access 
-
 def ReadAccess():
     conn = pyodbc.connect(r'DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=C:\path\to\access\file.accdb;')
     cursor = conn.cursor()
@@ -36,3 +32,19 @@ def ReadAccess():
     for row in cursor.fetchall():
         print(row)
     conn.close()
+
+## Si quieres separar los primeros caracters que sean digitos 
+
+def split_digits(s):
+    head = s.rstrip('0123456789')
+    tail = s[len(head):]
+    return head, tail
+
+#si quieres separar por guion y separar en 2 string y eliminar espacios en balnco al inicio y al final
+
+def split_hyphen(s):
+    head, tail = s.split('-', 1)
+    return head.strip(), tail.strip()
+
+
+
